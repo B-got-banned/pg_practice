@@ -9,7 +9,8 @@
     "strictNullChecks": true,
     "strictFunctionTypes": true,
     "strict": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "outDir": "./dist"
   },
   "exclude": ["node_modules", "**/node_modules/*"],
   "include": ["**/*.ts", "config/**/*.ts", "routes/**/*.ts", "controllers/**/*.ts"]

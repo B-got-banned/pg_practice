@@ -1,4 +1,4 @@
--- Run with: tsx ./config/setup.ts
+-- Run with: tsx ../config/setup.ts
 -- Or:       npm run db:setup
 
 CREATE TABLE IF NOT EXISTS students(

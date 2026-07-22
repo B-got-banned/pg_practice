@@ -6,7 +6,7 @@ export async function createStudent(req, res, next) {
         if (!first_name || !last_name || !email || !age || !department || !level || !cgpa)
             return res.status(400).json({ error: "first_name, last_name, email, age, department, level and cgpa are required" });
         const sql = 'INSERT INTO students(first_name, last_name, email, age, department, level, cgpa) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *;';
-        const student_data = await query(sql, [first_name, last_name, email, age, department, cgpa]);
+        const student_data = await query(sql, [first_name, last_name, email, age, department, level, cgpa]);
         res.status(201).json({ message: "Student added successfully!", row: student_data.rows });
         console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`);
     }

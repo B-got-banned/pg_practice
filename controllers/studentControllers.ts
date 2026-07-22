@@ -8,6 +8,7 @@ interface Student {
   email: string
   age: number
   department: string
+  level: number
   cgpa: number
   created_at: string
 }
@@ -15,11 +16,11 @@ interface Student {
 //Create a student
 export async function createStudent(req: Request, res: Response, next: NextFunction) {
   try{
-    const {first_name, last_name, email, age, department, cgpa} = req.body
+    const {first_name, last_name, email, age, department, level, cgpa} = req.body
 
-    if(!first_name || !last_name || !email || !age || !department || !cgpa) return res.status(400).json({error: "first_name, last_name, email, age, department and cgpa are required"})
+    if(!first_name || !last_name || !email || !age || !department || !level || !cgpa) return res.status(400).json({error: "first_name, last_name, email, age, department, level and cgpa are required"})
 
-    const sql = 'INSERT INTO students(first_name, last_name, email, age, department, cgpa) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;'
+    const sql = 'INSERT INTO students(first_name, last_name, email, age, department, level, cgpa) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *;'
     const student_data = await query<Student>(sql, [first_name, last_name, email, age, department, cgpa])
     res.status(201).json({message: "Student added successfully!", row: student_data.rows})
     console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
@@ -42,7 +43,7 @@ export async function getStudents(req: Request, res: Response, next: NextFunctio
     let t_sort = sort
 
     //Sort-value array for extra safety against SQL injection since template literals are used in sort query
-    const valid_sort_values = ['id', '-id', 'first_name', '-first_name', 'last_name', '-last_name', 'email', '-email', 'age', '-age', 'department', '-department', 'cgpa', '-cgpa', 'created_at', '-created_at']
+    const valid_sort_values = ['id', '-id', 'first_name', '-first_name', 'last_name', '-last_name', 'email', '-email', 'age', '-age', 'department', '-department', 'level', '-level', 'cgpa', '-cgpa', 'created_at', '-created_at']
 
     //Query parameter queries written with query placeholders
     let dept_sql = "department ~* $1"
@@ -210,12 +211,12 @@ export async function getStudentById(req: Request, res: Response, next: NextFunc
 export async function updateStudent(req: Request, res: Response, next: NextFunction) {
   try{
     const id = req.params.id
-    const {first_name, last_name, email, age, department, cgpa} = req.body
+    const {first_name, last_name, email, age, department, level, cgpa} = req.body
     
-    if(!first_name || !last_name || !email || !age || !department || !cgpa) return res.status(400).json({error: "first_name, last_name, email, age, department and cgpa are required"})
+    if(!first_name || !last_name || !email || !age || !department || !level || !cgpa) return res.status(400).json({error: "first_name, last_name, email, age, department and cgpa are required"})
 
-    const sql = 'UPDATE students SET first_name = $1, last_name = $2, email = $3, age = $4, department = $5, cgpa = $6 WHERE id = $7 RETURNING *'
-    const student_data = await query<Student>(sql, [first_name, last_name, email, age, department, cgpa, id])
+    const sql = 'UPDATE students SET first_name = $1, last_name = $2, email = $3, age = $4, department = $5, level = $6, cgpa = $7 WHERE id = $8 RETURNING *'
+    const student_data = await query<Student>(sql, [first_name, last_name, email, age, department, level, cgpa, id])
 
     if(student_data.rows.length === 0) return res.status(404).json({error: `Student with id ${id} could not be found`})
     
@@ -248,4 +249,3 @@ export async function deleteStudent(req: Request, res: Response, next: NextFunct
   }
 }
 
-//Stat Routes

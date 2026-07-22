@@ -32,13 +32,154 @@ export async function createStudent(req: Request, res: Response, next: NextFunct
   }
   
 }
-//Get all students
+//Get all students + filtering by department, cgpa and search + pagination :D
 export async function getStudents(req: Request, res: Response, next: NextFunction) {
   try{
-    const sql = 'SELECT * FROM students ORDER BY id;'
-    const student_data = await query<Student>(sql)
+    //Extracting query parameters with default values for page and limit
+    const {department, cgpa, search, page = 1, limit = 10} = req.query
+    let sort = req.query.sort
+    //temporary sort variable
+    let t_sort = sort
+
+    //Sort-value array for extra safety against SQL injection since template literals are used in sort query
+    const valid_sort_values = ['id', '-id', 'first_name', '-first_name', 'last_name', '-last_name', 'email', '-email', 'age', '-age', 'department', '-department', 'cgpa', '-cgpa', 'created_at', '-created_at']
+
+    //Query parameter queries written with query placeholders
+    let dept_sql = "department ~* $1"
+    let cgpa_sql = "cgpa >= $2"
+    let search_sql = "first_name ~* $3 OR last_name ~* $3 OR email ~* $3"
+
+    //Remove - so we don't break PostgreSQL in sort query
+    if(sort?.toString()[0] === "-") sort = sort.toString().slice(1)
+    let sort_sql = ` ORDER BY ${sort}`
+
+    let page_sql = ""
+    //Check for extra safety since template literals are used in pagination query
+    if(!isNaN(Number(page)) && !isNaN(Number(limit))){
+      page_sql = ` LIMIT ${limit} OFFSET ${(Number(page) - 1) * Number(limit)}`
+    }
+    else{
+      return res.status(400).json({error: "Both page and limit must be numbers"})
+    }
+    
+    //Base query
+    let sql = 'SELECT * FROM students'
+
+    let params: unknown[] = []
+    // Include department, cgpa or search queries in arbitrary order to avoid SQL injection and match params positions
+    if(department || cgpa || search){
+      sql += " WHERE "
+      if(department){
+        //Order 1: students in department
+        sql += dept_sql
+        params.push(department)
+        if(cgpa || search){
+          sql += " AND "
+          if(cgpa){
+            //Order 2: students in department with cgpa >= cgpa parameter
+            sql += cgpa_sql
+            params.push(cgpa)
+            if(search){
+              //Order 3: students in department with cgpa >= cgpa parameter and search matching first_name, last_name or email
+              sql += " AND "
+              sql += search_sql
+              params.push(search)
+            }
+          }else if(search){
+            //Order 4: students in department and search matching first_name, last_name or email
+            search_sql = search_sql.replaceAll("3", "2")
+            sql += search_sql
+            params.push(search)
+            if(cgpa){
+              //Order 5: students in department and search matching first_name, last_name or email with cgpa >= cgpa parameter
+              sql += " AND "
+              cgpa_sql = cgpa_sql.replaceAll("2", "3")
+              sql += cgpa_sql
+              params.push(cgpa)
+            }
+          }
+        }
+      }else if(cgpa){
+        //Order 6: students with cgpa >= cgpa parameter
+        cgpa_sql = cgpa_sql.replaceAll("2", "1")
+        sql += cgpa_sql
+        params.push(cgpa)
+        if(department || search){
+          sql += " AND "
+          if(department){
+            //Order 7: students with cgpa >= cgpa parameter and in department
+            dept_sql = dept_sql.replaceAll("1", "2")
+            sql += dept_sql
+            params.push(department)
+            if(search){
+              //Order 8: students with cgpa >= cgpa parameter and in department and search matching first_name, last_name or email
+              sql += " AND "
+              sql += search_sql
+              params.push(search)
+            }
+          }else if(search){
+            //Order 9: students with cgpa >= cgpa parameter and search matching first_name, last_name or email
+            search_sql = search_sql.replaceAll("3", "2")
+            sql += search_sql
+            params.push(search)
+            if(department){
+              //Order 10: students with cgpa >= cgpa parameter and search matching first_name, last_name or email and in department
+              sql += " AND "
+              dept_sql = dept_sql.replaceAll("1", "3")
+              sql += dept_sql
+              params.push(department)
+            }
+          }
+        }
+      }else if(search){
+        //Order 11: students with search matching first_name, last_name or email
+        search_sql = search_sql.replaceAll("3", "1")
+        sql += search_sql
+        params.push(search)
+        if(cgpa || department){
+          sql += " AND "
+          if(cgpa){
+            //Order 12: students with search matching first_name, last_name or email and cgpa >= cgpa parameter
+            sql += cgpa_sql
+            params.push(cgpa)
+            if(department){
+              //Order 13: students with search matching first_name, last_name or email and cgpa >= cgpa parameter and in department
+              sql += " AND "
+              dept_sql = dept_sql.replaceAll("1", "3")
+              sql += dept_sql
+              params.push(department)
+            }
+          }else if(department){
+            //Order 14: students with search matching first_name, last_name or email and in department
+            dept_sql = dept_sql.replaceAll("1", "2")
+            sql += dept_sql
+            params.push(department)
+            if(cgpa){
+              //Order 15: students with search matching first_name, last_name or email and in department with cgpa >= cgpa parameter
+              sql += " AND "
+              cgpa_sql = cgpa_sql.replaceAll("2", "3")
+              sql += cgpa_sql
+              params.push(cgpa)
+            }
+          }
+        }
+      }
+    }
+    // Include sort query if provided
+    if(sort){
+      if(valid_sort_values.includes(sort.toString())){
+        if(t_sort?.toString()[0] === "-") sort_sql += " DESC"
+        sql += sort_sql
+      }
+      else{
+        return res.status(400).json({error: "Invalid sort value"})
+      }
+    }
+    //Finally add pagination query to base query to follow SQL order of execution
+    sql += page_sql
+    const student_data = await query<Student>(sql, params)
     res.status(200).json({message: "Students fetched successfully!", rows: student_data.rows})
-    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+    console.log(`Query Successful: ${sql}`, {query_params: params})
   }
   catch(error){
     res.status(500).json({error: "Could not get all student records :("})
@@ -106,3 +247,5 @@ export async function deleteStudent(req: Request, res: Response, next: NextFunct
     console.error('Failed to delete student record :(', error)
   }
 }
+
+//Stat Routes

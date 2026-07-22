@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "ES2024",
     "jsx": "react-jsx",
     "checkJs": false,
@@ -13,5 +13,5 @@
     "outDir": "./dist"
   },
   "exclude": ["node_modules", "**/node_modules/*"],
-  "include": ["**/*.ts", "config/**/*.ts", "routes/**/*.ts", "controllers/**/*.ts"]
+  "include": ["**/*.ts"]
 }

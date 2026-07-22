@@ -1,19 +1,20 @@
 {
-  "name": "assignment_1",
+  "name": "student-management-api",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch index.ts",
-    "build": "rimraf dist tsc",
+    "clean": "rimraf dist",
+    "build": "npm run clean && tsc",
     "start": "node ./dist/index.js",
     "db:setup": "tsx ./config/setup.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

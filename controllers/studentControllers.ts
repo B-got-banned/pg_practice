@@ -249,3 +249,165 @@ export async function deleteStudent(req: Request, res: Response, next: NextFunct
   }
 }
 
+//Stat Controllers
+//Count student records
+export async function getStudentCount(req: Request, res: Response, next: NextFunction) {
+  try{
+    const sql = 'SELECT COUNT(*) from students'
+    const stat_data = await query(sql)
+
+    res.status(200).json({info: `There are ${stat_data.rows[0].count} student records`})
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: "Could not get student count"})
+    console.error("Failed to fetch student count", error)
+  }
+}
+//Get average CGPA
+export async function getAvgCgpa(req: Request, res: Response, next: NextFunction) {
+  try{
+    const sql = 'SELECT AVG(cgpa) from students'
+    const stat_data = await query(sql)
+
+    res.status(200).json({info: `The average CGPA is ${stat_data.rows[0].avg}`})
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: "Could not get average CGPA"})
+    console.error("Failed to fetch average CGPA", error)
+  }
+}
+//Get highest CGPA
+export async function getHighestCgpa(req: Request, res: Response, next: NextFunction) {
+  try{
+    const sql = 'SELECT MAX(cgpa) from students'
+    const stat_data = await query(sql)
+
+    res.status(200).json({info: `The highest CGPA is ${stat_data.rows[0].max}`})
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: "Could not get highest CGPA"})
+    console.error("Failed to fetch highest CGPA", error)
+  }
+}
+//Get lowest CGPA
+export async function getLowestCgpa(req: Request, res: Response, next: NextFunction) {
+  try{
+    const sql = 'SELECT MIN(cgpa) from students'
+    const stat_data = await query(sql)
+
+    res.status(200).json({info: `The lowest CGPA is ${stat_data.rows[0].min}`})
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: "Could not get lowest CGPA"})
+    console.error("Failed to fetch lowest CGPA", error)
+  }
+}
+
+//Get departments
+export async function getDepartments(req: Request, res: Response, next: NextFunction) {
+  try{
+    const sql = 'SELECT department, COUNT(*) as student_count FROM students GROUP BY department ORDER BY department'
+    const dept_data = await query(sql)
+
+    res.status(200).json(dept_data.rows)
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: "Could not get departments"})
+    console.error("Failed to fetch departments", error)
+  }
+}
+
+//Get average cgpa by department
+export async function getDepartmentsAverage(req: Request, res: Response, next: NextFunction) {
+  try{
+    const sql = 'SELECT department, AVG(cgpa) as avg_dept_cgpa FROM students GROUP BY department ORDER BY avg_dept_cgpa DESC'
+    const dept_data = await query(sql)
+
+    res.status(200).json(dept_data.rows)
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: "Could not get department averages"})
+    console.error("Failed to fetch department averages", error)
+  }
+}
+
+//Get students older than a particular age
+export async function getStudentsOlderThan(req: Request, res: Response, next: NextFunction) {
+  try{
+    const age = req.params.age
+    const sql = 'SELECT * from students WHERE age > $1'
+    const stat_data = await query(sql, [age])
+
+    res.status(200).json(stat_data.rows)
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: `Could not get students older than ${req.params.age}`})
+    console.error(`Failed to fetch students older than ${req.params.age}`, error)
+  }
+}
+
+//Get students with cgpa between min/max
+export async function getStudentsInCgpaRange(req: Request, res: Response, next: NextFunction) {
+  try{
+    const sql = 'SELECT * FROM students WHERE cgpa BETWEEN (SELECT MIN(cgpa) FROM students) AND (SELECT MAX(cgpa) FROM students) ORDER BY cgpa'
+    const cgpa_data = await query(sql)
+
+    res.status(200).json(cgpa_data.rows)
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: "Could not get student records"})
+    console.error("Failed to fetch student records", error)
+  }
+}
+
+//Get students in a particular set of departments
+export async function getDepartmentsStudents(req: Request, res: Response, next: NextFunction) {
+  try {
+    let depts = req.params.depts
+    let deptArray = depts.toString().split(",")
+    let sql = "SELECT * FROM students WHERE department IN("
+    
+    if(deptArray.length > 1){
+      for(let i = 1; i <= deptArray.length; i++){
+        sql += `$${i},`
+      }
+      sql = sql.slice(0,-1)
+      sql+=")"
+    }
+    else{
+      sql += "$1)"
+    }
+    const data = await query(sql, [...deptArray])
+
+    res.status(200).json(data.rows)
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  } catch (error) {
+    res.status(500).json({error: "Could not get student records"})
+    console.error("Failed to fetch student records", error)
+  }
+  
+}
+
+
+//Count students by level
+export async function getStudentCountByLevel(req: Request, res: Response, next: NextFunction) {
+  try{
+    const sql = 'SELECT level, COUNT(*) as student_count FROM students GROUP BY level ORDER BY level'
+    const level_data = await query(sql)
+
+    res.status(200).json(level_data.rows)
+    console.log(`Query Successful: ${sql.split(" ")[0].toUpperCase()}`)
+  }
+  catch(error){
+    res.status(500).json({error: "Could not get student count"})
+    console.error("Failed to fetch student count", error)
+  }
+}

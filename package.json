@@ -1,7 +1,7 @@
 {
   "name": "student-management-api",
   "version": "1.0.0",
-  "description": "Student Management REST API using Node.js, TypeScript, Express and PostgreSQL :D",
+  "description": "A Student Management REST API built using Node.js, TypeScript, Express and PostgreSQL :D",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

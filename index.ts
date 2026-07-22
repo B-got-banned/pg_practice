@@ -1,8 +1,8 @@
 import express from 'express'
-import reqLogger from './middleware/reqLogger'
+import reqLogger from './middleware/reqLogger.js'
 import dotenv from 'dotenv'
-import {pool} from './config/db'
-import router from './routes/studentRoutes'
+import {pool} from './config/db.js'
+import router from './routes/studentRoutes.js'
 
 dotenv.config()
 const app = express()

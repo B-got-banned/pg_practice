@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getStudents, getStudentById, createStudent, updateStudent, deleteStudent, getStudentCount, getAvgCgpa, getHighestCgpa, getLowestCgpa, getDepartments, getDepartmentsAverage, getStudentsOlderThan, getStudentCountByLevel, getStudentsInCgpaRange, getDepartmentsStudents } from "../controllers/studentControllers";
+import { getStudents, getStudentById, createStudent, updateStudent, deleteStudent, getStudentCount, getAvgCgpa, getHighestCgpa, getLowestCgpa, getDepartments, getDepartmentsAverage, getStudentsOlderThan, getStudentCountByLevel, getStudentsInCgpaRange, getDepartmentsStudents } from "../controllers/studentControllers.js";
 
 const router = Router()
 

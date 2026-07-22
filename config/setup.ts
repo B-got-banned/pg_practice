@@ -1,4 +1,4 @@
-import {pool, query} from './db'
+import {pool, query} from './db.js'
 import fs from 'node:fs'
 import path from 'node:path'
 

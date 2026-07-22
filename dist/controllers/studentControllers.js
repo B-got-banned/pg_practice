@@ -1,4 +1,4 @@
-import { query } from '../config/db';
+import { query } from '../config/db.js';
 //Create a student
 export async function createStudent(req, res, next) {
     try {

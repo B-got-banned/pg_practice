@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import {query} from '../config/db'
+import {query} from '../config/db.js'
 
 interface Student {
   id: number

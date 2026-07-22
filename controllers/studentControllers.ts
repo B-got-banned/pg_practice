@@ -37,8 +37,13 @@ export async function createStudent(req: Request, res: Response, next: NextFunct
 export async function getStudents(req: Request, res: Response, next: NextFunction) {
   try{
     //Extracting query parameters with default values for page and limit
-    const {department, cgpa, search, page = 1, limit = 10} = req.query
-    let sort = req.query.sort
+    const {department, cgpa, search} = req.query
+    const sortParam = req.query.sort
+    const pageParam = req.query.page
+    const limitParam = req.query.limit
+    let sort = typeof sortParam === "string" ? sortParam : "id"
+    let page = typeof pageParam === "string" ? pageParam : 1
+    let limit = typeof limitParam === "string" ? limitParam : 10
     //temporary sort variable
     let t_sort = sort
 
@@ -51,12 +56,12 @@ export async function getStudents(req: Request, res: Response, next: NextFunctio
     let search_sql = "first_name ~* $3 OR last_name ~* $3 OR email ~* $3"
 
     //Remove - so we don't break PostgreSQL in sort query
-    if(sort?.toString()[0] === "-") sort = sort.toString().slice(1)
+    if(sort.startsWith("-")) sort = sort.slice(1)
     let sort_sql = ` ORDER BY ${sort}`
 
     let page_sql = ""
     //Check for extra safety since template literals are used in pagination query
-    if(!isNaN(Number(page)) && !isNaN(Number(limit))){
+    if(!Number.isNaN(Number(page)) && !Number.isNaN(Number(limit))){
       page_sql = ` LIMIT ${limit} OFFSET ${(Number(page) - 1) * Number(limit)}`
     }
     else{
@@ -169,7 +174,7 @@ export async function getStudents(req: Request, res: Response, next: NextFunctio
     // Include sort query if provided
     if(sort){
       if(valid_sort_values.includes(sort.toString())){
-        if(t_sort?.toString()[0] === "-") sort_sql += " DESC"
+        if(t_sort.startsWith("-")) sort_sql += " DESC"
         sql += sort_sql
       }
       else{
@@ -249,6 +254,7 @@ export async function deleteStudent(req: Request, res: Response, next: NextFunct
   }
 }
 
+
 //Stat Controllers
 //Count student records
 export async function getStudentCount(req: Request, res: Response, next: NextFunction) {
@@ -264,6 +270,7 @@ export async function getStudentCount(req: Request, res: Response, next: NextFun
     console.error("Failed to fetch student count", error)
   }
 }
+
 //Get average CGPA
 export async function getAvgCgpa(req: Request, res: Response, next: NextFunction) {
   try{
@@ -278,6 +285,7 @@ export async function getAvgCgpa(req: Request, res: Response, next: NextFunction
     console.error("Failed to fetch average CGPA", error)
   }
 }
+
 //Get highest CGPA
 export async function getHighestCgpa(req: Request, res: Response, next: NextFunction) {
   try{
@@ -292,6 +300,7 @@ export async function getHighestCgpa(req: Request, res: Response, next: NextFunc
     console.error("Failed to fetch highest CGPA", error)
   }
 }
+
 //Get lowest CGPA
 export async function getLowestCgpa(req: Request, res: Response, next: NextFunction) {
   try{
@@ -395,7 +404,6 @@ export async function getDepartmentsStudents(req: Request, res: Response, next: 
   }
   
 }
-
 
 //Count students by level
 export async function getStudentCountByLevel(req: Request, res: Response, next: NextFunction) {
